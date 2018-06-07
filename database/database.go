@@ -1,18 +1,23 @@
 package database
 
 import (
-	"database/sql"
-
+	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
+
+	"ijahinventory/model/log/ingoing"
+	"ijahinventory/model/log/outgoing"
+	"ijahinventory/model/product"
 )
 
 var (
-	db  *sql.DB
+	db  *gorm.DB
 	err error
 )
 
-func OpenDb() (*sql.DB, error) {
-	db, err = sql.Open("sqlite3", "ijah-inventory.db")
+func OpenDb() (*gorm.DB, error) {
+	db, err = gorm.Open("sqlite3", "ijah-inventory.db")
+	db.AutoMigrate()
+	db.LogMode(true)
 	return db, err
 }
 

@@ -1,11 +1,14 @@
 package outgoing
 
 import (
+	"github.com/jinzhu/gorm"
+
 	"time"
 )
 
 type LogOutgoing struct {
-	ID            int       `json:"id"`
+	gorm.Model
+	ID            int       `gorm:"AUTO_INCREMENT" json:"id"`
 	Timestamp     time.Time `json:"timestamp"`
 	ProducId      int       `json:"-"`
 	TotalPrice    int       `json:"total_price"`

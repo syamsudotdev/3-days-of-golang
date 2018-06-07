@@ -1,11 +1,14 @@
 package ingoing
 
 import (
+	"github.com/jinzhu/gorm"
+
 	"time"
 )
 
 type LogIngoing struct {
-	ID            int       `json:"id"`
+	gorm.Model
+	ID            int       `gorm:"AUTO_INCREMENT" json:"id"`
 	Timestamp     time.Time `json:"timestamp"`
 	CountOrder    int       `json:"count_order"`
 	CountReceived int       `json:"count_received"`
