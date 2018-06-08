@@ -7,12 +7,13 @@ import (
 )
 
 type LogOutgoing struct {
-	ID            int       `gorm:"AUTO_INCREMENT" json:"id"`
-	Timestamp     time.Time `json:"timestamp"`
-	Product       product.Product
-	TotalPrice    int    `json:"total_price"`
-	CountOutgoing int    `json:"count_outgoing"`
-	Note          string `json:"note"`
+	ID            int             `gorm:"AUTO_INCREMENT" json:"id"`
+	Timestamp     time.Time       `json:"timestamp"`
+	ProductId     int             `json:"-"`
+	Product       product.Product `gorm:"foreignkey:ProductId" json:"-"`
+	TotalPrice    int             `json:"total_price"`
+	CountOutgoing int             `json:"count_outgoing"`
+	Note          string          `json:"note"`
 }
 
 func (LogOutgoing) TableName() string {
