@@ -11,6 +11,7 @@ type LogOutgoing struct {
 	Timestamp     time.Time       `json:"timestamp"`
 	ProductId     int             `json:"-"`
 	Product       product.Product `gorm:"foreignkey:ProductId" json:"-"`
+	SalePrice     int             `json:"sale_price"`
 	TotalPrice    int             `json:"total_price"`
 	CountOutgoing int             `json:"count_outgoing"`
 	Note          string          `json:"note"`

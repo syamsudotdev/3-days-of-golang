@@ -13,6 +13,7 @@ type LogIngoing struct {
 	CountReceived int             `json:"count_received"`
 	ProductId     int             `json:"-"`
 	Product       product.Product `gorm:"foreignkey:ProductId" json:"product"`
+	BuyPrice      int             `json:"buy_price"`
 	Note          string          `json:"note"`
 	ReceiptNumber string          `json:"receipt_number"`
 	TotalPrice    int             `json:"total_price"`
