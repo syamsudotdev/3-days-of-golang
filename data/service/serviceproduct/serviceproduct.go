@@ -1,7 +1,6 @@
 package serviceproduct
 
 import (
-	// "fmt"
 	"errors"
 	"time"
 
@@ -9,7 +8,6 @@ import (
 
 	"ijahinventory/data/database"
 	"ijahinventory/data/model/log"
-	// "ijahinventory/model/log/outgoing"
 	"ijahinventory/data/model/product"
 	"ijahinventory/http/response"
 )
@@ -28,7 +26,7 @@ func closeDb() {
 }
 
 //if sku not found, store new product
-//else update existing row by adding the stock count and log it
+//else update existing price and adding the stock count and log it
 //if sku not found and other product's fields are empty, return error
 func StoreProduct(item product.Product,
 	countOrder int,
@@ -38,10 +36,12 @@ func StoreProduct(item product.Product,
 	defer closeDb()
 
 	stockCount := item.StockCount
+	newPrice := item.Price
 	checkRow := db.First(&item, product.Product{Sku: item.Sku})
 	if !checkRow.RecordNotFound() {
 		//add the stock count
 		item.StockCount += stockCount
+		item.Price = newPrice
 	} else {
 		if item.Name == "" || item.Price == 0 || item.StockCount == 0 {
 			return nil,
@@ -57,6 +57,7 @@ func StoreProduct(item product.Product,
 		CountOrder:    countOrder,
 		CountReceived: item.StockCount,
 		Product:       item,
+		BuyPrice:      item.Price,
 		Note:          note,
 		ReceiptNumber: receiptNumber,
 		TotalPrice:    item.Price * item.StockCount,
@@ -91,6 +92,7 @@ func LogOutgoing(
 	logOutgoing := log.LogOutgoing{
 		Timestamp:     time.Now(),
 		Product:       item,
+		SalePrice:     item.Price,
 		CountOutgoing: countOutgoing,
 		TotalPrice:    item.Price * countOutgoing,
 		Note:          note,

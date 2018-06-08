@@ -3,7 +3,7 @@ package productcontroller
 import (
 	"github.com/gin-gonic/gin"
 
-	"ijahinventory/data/serviceproduct"
+	"ijahinventory/data/service/serviceproduct"
 	"ijahinventory/http/request"
 	"ijahinventory/http/responsehandler"
 )
