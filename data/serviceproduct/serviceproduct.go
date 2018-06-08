@@ -11,6 +11,7 @@ import (
 	"ijahinventory/data/model/log"
 	// "ijahinventory/model/log/outgoing"
 	"ijahinventory/data/model/product"
+	"ijahinventory/http/response"
 )
 
 var (
@@ -26,7 +27,8 @@ func closeDb() {
 	db.Close()
 }
 
-//store new product or update existing row and log it
+//if sku not found, store new product
+//else update existing row by adding the stock count and log it
 //if sku not found and other product's fields are empty, return error
 func StoreProduct(item product.Product,
 	countOrder int,
@@ -38,7 +40,8 @@ func StoreProduct(item product.Product,
 	stockCount := item.StockCount
 	checkRow := db.First(&item, product.Product{Sku: item.Sku})
 	if !checkRow.RecordNotFound() {
-		item.StockCount = stockCount
+		//add the stock count
+		item.StockCount += stockCount
 	} else {
 		if item.Name == "" || item.Price == 0 || item.StockCount == 0 {
 			return nil,
@@ -63,4 +66,50 @@ func StoreProduct(item product.Product,
 	}
 
 	return &item, nil
+}
+
+func LogOutgoing(
+	sku string,
+	countOutgoing int,
+	note string,
+) (*response.ResponseLogOutgoing, error) {
+	openDb()
+	defer closeDb()
+
+	var item product.Product
+	if db.First(
+		&item,
+		product.Product{Sku: sku},
+	).RecordNotFound() {
+		return nil, errors.New("Item with sku " + sku + " not found")
+	}
+	if item.StockCount < countOutgoing {
+		return nil, errors.New("Item out of stock")
+	}
+
+	item.StockCount -= countOutgoing
+	logOutgoing := log.LogOutgoing{
+		Timestamp:     time.Now(),
+		Product:       item,
+		CountOutgoing: countOutgoing,
+		TotalPrice:    item.Price * countOutgoing,
+		Note:          note,
+	}
+	//update the stock count and log it
+	if err := db.Create(&logOutgoing).Error; err != nil {
+		return nil, err
+	}
+
+	//custom response body to remove unnecessary fields shown
+	response := response.ResponseLogOutgoing{
+		Timestamp:     logOutgoing.Timestamp,
+		Sku:           logOutgoing.Product.Sku,
+		ProductName:   logOutgoing.Product.Name,
+		CountOutgoing: logOutgoing.CountOutgoing,
+		Price:         logOutgoing.Product.Price,
+		TotalPrice:    logOutgoing.TotalPrice,
+		Note:          logOutgoing.Note,
+	}
+
+	return &response, nil
 }

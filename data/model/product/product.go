@@ -1,7 +1,8 @@
 package product
 
 type Product struct {
-	ID         int    `gorm:"AUTO_INCREMENT" json:"id"`
+	//prevent id field to show on response
+	ID         int    `gorm:"AUTO_INCREMENT" json:"-"`
 	Name       string `json:"name"`
 	Price      int    `json:"price"`
 	Sku        string `gorm:"unique" json:"sku"`

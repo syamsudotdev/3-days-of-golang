@@ -8,9 +8,10 @@ import (
 	"ijahinventory/http/controller/productcontroller"
 )
 
-func SetRoutes(engine *gin.Engine) {
-	engine.GET("/", Root)
-	engine.POST("/products", productcontroller.Store)
+func SetRoutes(ginEngine *gin.Engine) {
+	ginEngine.GET("/", Root)
+	ginEngine.POST("/products", productcontroller.Store)
+	ginEngine.PUT("/products/out", productcontroller.LogOutgoing)
 }
 
 func Root(c *gin.Context) {
