@@ -23,3 +23,8 @@ func ReportProductOutgoing(c *gin.Context) {
 	err := servicereport.GenerateCsvProductOutgoing(path)
 	responsehandler.HandleFile(c, err, path)
 }
+
+func ReportProductValue(c *gin.Context) {
+	err := servicereport.GenerateCsvProductValue(path)
+	responsehandler.HandleFile(c, err, path)
+}

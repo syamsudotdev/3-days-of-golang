@@ -39,7 +39,7 @@ func StoreProduct(item product.Product,
 	newPrice := item.Price
 	checkRow := db.First(&item, product.Product{Sku: item.Sku})
 	if !checkRow.RecordNotFound() {
-		//add the stock count
+		//add the stock count and update the price
 		item.StockCount += stockCount
 		item.Price = newPrice
 	} else {

@@ -128,3 +128,84 @@ func GenerateCsvProductOutgoing(path string) error {
 
 	return nil
 }
+
+func GenerateCsvProductValue(path string) error {
+	openDb()
+	defer closeDb()
+
+	var logs []log.LogIngoing
+	if err := db.Preload("Product").Find(&logs).Error; err != nil {
+		return err
+	}
+
+	var countSku int
+	if err := db.
+		Model(&product.Product{}).
+		Count(&countSku).Error; err != nil {
+		return err
+	}
+
+	var countProductStock int
+	row := db.Raw("SELECT SUM(stock_count) from products").Row()
+	row.Scan(&countProductStock)
+
+	var data [][]string
+	data = append(data, []string{"Laporan Nilai Barang"})
+	data = append(data, []string{" "})
+	data = append(data, []string{
+		"Tanggal Cetak",
+		time.Now().Format(time.UnixDate),
+	})
+	data = append(data, []string{
+		"Jumlah SKU",
+		util.IntToString(countSku),
+	})
+	//total quantity in inventory
+	data = append(data, []string{
+		"Jumlah Total Barang",
+		util.IntToString(countProductStock),
+	})
+
+	rows, err := db.
+		Raw("SELECT " +
+			" p.sku, p.name, p.stock_count," +
+			" aa.qty, aa.avgbuy, (aa.qty * aa.avgbuy) AS total " +
+			" FROM products p " +
+			" LEFT JOIN ( " +
+			"SELECT " +
+			" l.product_id, SUM(l.count_received) AS qty, " +
+			" (sum(l.total_price)/sum(l.count_received)) as avgbuy " +
+			"FROM log_ingoing l " +
+			"GROUP BY l.product_id) aa " +
+			" ON p.id = aa.product_id").Rows()
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	var items [][]string
+	var totalValue int
+	for rows.Next() {
+		var sku, productName, stockCount string
+		var quantity, avgBuy, total int
+		rows.Scan(&sku, &productName, &stockCount, &quantity, &avgBuy, &total)
+		totalValue += total
+		items = append(
+			items,
+			[]string{sku, productName, stockCount, util.IntToString(quantity),
+				util.IntToString(avgBuy), util.IntToString(total)},
+		)
+	}
+
+	data = append(data, []string{"Total Nilai", util.IntToString(totalValue)})
+	data = append(data, []string{" "})
+	data = append(data, []string{"SKU", "Nama Item", "Jumlah",
+		"Rata-Rata Harga Beli", "Total"})
+	data = append(data, items...)
+
+	if err := util.WriteToCsv(data, path); err != nil {
+		return err
+	}
+
+	return nil
+}

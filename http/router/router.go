@@ -25,6 +25,10 @@ func SetRoutes(ginEngine *gin.Engine) {
 		"/products/report/product-outgoing.csv",
 		reportcontroller.ReportProductOutgoing,
 	)
+	ginEngine.GET(
+		"/products/report/product-value.csv",
+		reportcontroller.ReportProductValue,
+	)
 }
 
 func Root(c *gin.Context) {
