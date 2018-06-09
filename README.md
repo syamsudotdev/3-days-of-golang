@@ -3,9 +3,9 @@
 Go ReST API for inventory management written on go1.10.2
 
 ## Dependencies
-[Gin HTTP Framework](https://github.com/gin-gonic/gin)
-[SQLite3 driver](https://github.com/mattn/go-sqlite3)
-[Gorm library](https://github.com/jinzhu/gorm)
+- [Gin HTTP Framework](https://github.com/gin-gonic/gin)
+- [SQLite3 driver](https://github.com/mattn/go-sqlite3)
+- [Gorm library](https://github.com/jinzhu/gorm)
 
 ## How to run
 - You can run the executable files in `build` directory on shell (*nix/Linux) or cmd (Windows)
