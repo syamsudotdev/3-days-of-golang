@@ -3,9 +3,6 @@ package database
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
-	// "ijahinventory/model/log/ingoing"
-	// "ijahinventory/model/log/outgoing"
-	// "ijahinventory/model/product"
 )
 
 var (
@@ -14,7 +11,7 @@ var (
 )
 
 func OpenDb() (*gorm.DB, error) {
-	db, err = gorm.Open("sqlite3", "ijah-inventory.db")
+	db, err = gorm.Open("sqlite3", "inventory.db")
 	db.LogMode(true)
 	return db, err
 }
