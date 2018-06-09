@@ -133,11 +133,6 @@ func GenerateCsvProductValue(path string) error {
 	openDb()
 	defer closeDb()
 
-	var logs []log.LogIngoing
-	if err := db.Preload("Product").Find(&logs).Error; err != nil {
-		return err
-	}
-
 	var countSku int
 	if err := db.
 		Model(&product.Product{}).
@@ -192,8 +187,13 @@ func GenerateCsvProductValue(path string) error {
 		totalValue += total
 		items = append(
 			items,
-			[]string{sku, productName, stockCount, util.IntToString(quantity),
-				util.IntToString(avgBuy), util.IntToString(total)},
+			[]string{
+				sku,
+				productName,
+				stockCount,
+				util.IntToString(quantity),
+				util.IntToString(avgBuy),
+				util.IntToString(total)},
 		)
 	}
 
@@ -201,6 +201,101 @@ func GenerateCsvProductValue(path string) error {
 	data = append(data, []string{" "})
 	data = append(data, []string{"SKU", "Nama Item", "Jumlah",
 		"Rata-Rata Harga Beli", "Total"})
+	data = append(data, items...)
+
+	if err := util.WriteToCsv(data, path); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GenerateCsvSales(path string, start time.Time, end time.Time) error {
+	openDb()
+	defer closeDb()
+
+	layout := "2006-01-02 15:04:05"
+	startString := start.Format(layout)
+	end = end.AddDate(0, 0, 1)
+	endString := end.Format(layout)
+
+	var data [][]string
+	data = append(data, []string{"Laporan Penjualan"})
+	data = append(data, []string{" "})
+	data = append(data, []string{
+		"Tanggal Cetak",
+		time.Now().Format(time.UnixDate),
+	})
+	data = append(data, []string{"Tanggal", startString + " - " + endString})
+
+	rows, err := db.
+		Raw("SELECT " +
+			"l.note, l.timestamp, p.sku, p.name, l.count_outgoing, " +
+			"l.sale_price, l.total_price, aa.avgbuy, " +
+			"(l.total_price - aa.avgbuy) AS profit " +
+			"FROM log_outgoing l " +
+			"JOIN (" +
+			"SELECT " +
+			"l.product_id, SUM(l.count_received) AS qty, " +
+			"(SUM(l.total_price) / SUM(l.count_received)) AS avgbuy " +
+			"FROM log_ingoing l GROUP BY l.product_id) aa " +
+			"ON l.product_id = aa.product_id " +
+			"JOIN products p ON l.product_id = p.id " +
+			"WHERE l.timestamp " +
+			"BETWEEN datetime('" + startString + "') " +
+			"AND datetime('" + endString + "')").Rows()
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	var items [][]string
+	var totalTurnover, totalProfit, totalQuantity int
+	for rows.Next() {
+		var note, timestamp, sku, productName string
+		var quantity, salePrice, totalPrice, avgBuy, profit int
+		rows.Scan(&note, &timestamp, &sku, &productName, &quantity, &salePrice,
+			&totalPrice, &avgBuy, &profit)
+		totalTurnover += totalPrice
+		totalProfit += profit
+		totalQuantity += quantity
+		items = append(
+			items,
+			[]string{
+				note,
+				timestamp,
+				sku, productName,
+				util.IntToString(quantity),
+				util.IntToString(salePrice),
+				util.IntToString(totalPrice),
+				util.IntToString(avgBuy),
+				util.IntToString(profit)},
+		)
+	}
+
+	data = append(
+		data,
+		[]string{"Total Omzet", util.IntToString(totalTurnover)},
+	)
+
+	data = append(
+		data,
+		[]string{"Total Laba Kotor", util.IntToString(totalProfit)},
+	)
+
+	data = append(
+		data,
+		[]string{"Total Penjualan", util.IntToString(len(items))},
+	)
+
+	data = append(
+		data,
+		[]string{"Total Barang", util.IntToString(totalQuantity)},
+	)
+
+	data = append(data, []string{" "})
+	data = append(data, []string{"ID-Pesanan", "Waktu", "SKU", "Nama Barang",
+		"Jumlah", "Harga Jual", "Total", "Harga Beli", "Laba"})
 	data = append(data, items...)
 
 	if err := util.WriteToCsv(data, path); err != nil {

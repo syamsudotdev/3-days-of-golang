@@ -1,6 +1,6 @@
 package request
 
-type RequestProductOutgoing struct {
+type ProductOutgoing struct {
 	Sku           string `json:"sku"`
 	CountOutgoing int    `json:"count_outgoing"`
 	Note          string `json:"note"`

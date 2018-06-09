@@ -9,7 +9,7 @@ import (
 )
 
 func Store(c *gin.Context) {
-	var request request.RequestProductIngoing
+	var request request.ProductIngoing
 	c.Bind(&request)
 
 	result, err := serviceproduct.StoreProduct(
@@ -22,7 +22,7 @@ func Store(c *gin.Context) {
 }
 
 func LogOutgoing(c *gin.Context) {
-	var request request.RequestProductOutgoing
+	var request request.ProductOutgoing
 	c.Bind(&request)
 
 	result, err := serviceproduct.LogOutgoing(
